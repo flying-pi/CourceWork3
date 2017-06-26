@@ -1,7 +1,21 @@
 .codeAria {
   background-color: #90cddc !important;
-  color: #05002e;
-  width: 100% ;
+  color: #054700;
+  width: 100%;
   min-height: 50px;
-  margin-top: 25px;
+  font-size: 18pt;
+}
+
+.documentItem {
+  margin: 25px 3px 3px;
+  padding: 3px;
+  width: 100%;
+  background-color: #fffbe2;
+
+}
+
+.documentItemList {
+  margin-right: 12px;
+  list-style-type: none;
+  padding: 0;
 }

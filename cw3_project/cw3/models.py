@@ -14,7 +14,7 @@ class WorkspaceInputItem(models.Model):
         return result
 
     def to_json(self):
-        return dict(itemText=self.itemText, isEditable=self.isEditable)
+        return dict(itemText=self.itemText, isEditable=self.isEditable, id=self.id)
 
 
 class Workspace(models.Model):
@@ -30,4 +30,4 @@ class Workspace(models.Model):
         return result
 
     def to_json(self):
-        return dict(title=self.title, inputList=[i.to_json() for i in self.input_list.all()])
+        return dict(id=self.id, title=self.title, inputList=[i.to_json() for i in self.input_list.all()])

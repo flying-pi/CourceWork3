@@ -1,8 +1,20 @@
 from django.conf.urls import url
+from rest_framework.urlpatterns import format_suffix_patterns
 
-from . import views
+from cw3.views import WorkspaceApi
+
+# urlpatterns = [
+#     url(r'^$', views.index, name='index'),
+#     url(r'^getWorkspace$', views.get_workspace, name='getWorkspace'),
+# ]
+
+# router = routers.SimpleRouter()
+# router.register(r'workspace', WorkspaceApi, base_name='create')
+# urlpatterns = router.urls
+
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^getWorkspace$', views.get_workspace, name='getWorkspace'),
+    url(r'^getWorkspace/', WorkspaceApi.as_view()),
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)

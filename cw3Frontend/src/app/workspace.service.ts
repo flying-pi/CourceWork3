@@ -1,12 +1,13 @@
 /**
  * Created by yurabraiko on 26.06.17.
  */
-import {Injectable} from '@angular/core';
-import {Http, Response, Headers} from '@angular/http';
+import {Injectable} from "@angular/core";
+import {Headers, Http, Response} from "@angular/http";
 
-import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/map';
+import {Observable} from "rxjs/Observable";
+import "rxjs/add/operator/catch";
+import "rxjs/add/operator/map";
+import {Workspace} from "./workspace";
 
 @Injectable()
 export class WorkspaceService {
@@ -14,24 +15,22 @@ export class WorkspaceService {
   }
 
   loadWorkspace(id: string) {
-    console.log('calling loadWorkspace.....');
     const headers = new Headers();
-    // headers.append('Access-Control-Allow-Headers', '*');
     headers.append('Accept', 'application/json');
-    // return this.http.get('http://0.0.0.0:8000/api/getWorkspace')
-    return this.http.get('http://127.0.0.1:8000/api/getWorkspace', {
+    return this.http.get('http://127.0.0.1:8000/api/getWorkspace/', {
       params: {id: id},
       headers: headers
+    }).map(res => {
+      console.log('getting response ', res.toString());
+      return res.json()
     })
-    // return this.http.get('http://127.0.0.1:8000/getWorkspace')
-      .map(this.extractData)
-      .catch(this.handleError);
-  }
-
-  private extractData(res: Response) {
-    const body = res.json();
-    console.log(res.toString());
-    return body.data || {};
+      .catch(error => {
+        this.handleError(error);
+        return Observable.create(observer => {
+          observer.next(new Workspace());
+          observer.complete();
+        });
+      })
   }
 
   private handleError(error: Response | any) {
