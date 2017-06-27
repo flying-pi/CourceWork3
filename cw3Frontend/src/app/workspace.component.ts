@@ -59,7 +59,16 @@ export class WorkspaceComponent implements OnInit {
   }
 
   removeItem(componentID): void {
-    console.log('remove click');
+    if (this.workspace.getUserEditItems() < 2) {
+      alert('Please go away I wont thinking')
+      return
+    }
+    this.workspaceSerivce.removeWorkspace(this.workspace.id, componentID)
+      .subscribe(items => {
+        const jsonArray = JSON.parse(items);
+        this.workspace.removeByID(jsonArray.removedItemID);
+        this.workspace.updateOrders(jsonArray.ID_OrderMap)
+      })
   }
 
   onItemEdit(item, componentID): void {

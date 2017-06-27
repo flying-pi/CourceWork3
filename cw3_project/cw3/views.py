@@ -84,6 +84,27 @@ class WorkspaceElementApi(APIView):
         workspace.input_list.add(new_item)
         workspace.save()
         result = dict(newItem=new_item.to_dictionary(),
-                      ID_OrderMap=[dict(id=i.id, order=i.order)
-                                   for i in workspace.input_list.all()])
+                      ID_OrderMap=[dict(id=i.id, order=i.order) for i in items])
+        return generate_response(result)
+
+    def delete(self, request):
+        workspace_id = request.query_params['workspaceID']
+        workspace_item_id = request.query_params['workspaceItemID']
+        workspace: Workspace = Workspace.objects.filter(id=workspace_id)[0]
+        if workspace is None:
+            return generate_error_response("can not found workspace with id :: " + workspace_id)
+        items = workspace.input_list.all()
+        target_item = workspace.input_list.all().filter(id=workspace_item_id)
+        if len(target_item) != 1:
+            return generate_error_response("can not found item with id :: " + workspace_id)
+        target_item = target_item[0]
+        workspace.input_list.remove(target_item)
+        for i in range(len(items)):
+            if items[i].order > target_item.order:
+                items[i].order -= 1
+                items[i].save()
+        target_item.delete()
+        items = workspace.input_list.all()
+        result = dict(removedItemID=workspace_item_id,
+                      ID_OrderMap=[dict(id=i.id, order=i.order) for i in items])
         return generate_response(result)

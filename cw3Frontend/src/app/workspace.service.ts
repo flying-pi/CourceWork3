@@ -59,6 +59,34 @@ export class WorkspaceService {
       })
   }
 
+
+
+  removeWorkspace(workspaceID: string, workspaceItemID: string) {
+    const headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+    const body = {
+      workspaceID: workspaceID,
+      workspaceItemID: workspaceItemID
+    };
+
+    return this.http.delete(
+      'http://127.0.0.1:8000/api/workspaceItem/',
+      { params: body,
+        headers: headers}
+    ).map(res => {
+      console.log('getting response ', res.toString());
+      return res.json()
+    })
+      .catch(error => {
+        this.handleError(error);
+        return Observable.create(observer => {
+          observer.next(new Workspace());
+          observer.complete();
+        });
+      })
+  }
+
   private handleError(error: Response | any) {
     let errMsg: string;
     if (error instanceof Response) {
