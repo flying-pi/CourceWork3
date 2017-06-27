@@ -54,24 +54,36 @@ class WorkspaceElementApi(APIView):
         workspace: Workspace = Workspace.objects.filter(id=workspace_id)[0]
         if workspace is None:
             return generate_error_response("can not found workspace with id :: " + workspace_id)
+        order = 0
+        items = workspace.input_list.all()
+        target_item = workspace.input_list.all().filter(id=workspace_item_id)
+        if len(target_item) != 1:
+            workspace_item_id = -1
+        else:
+            target_item = target_item[0]
+            order = target_item.order + 1
+        if workspace_item_id < 0:
+            for i in items:
+                if i.order < order:
+                    order = i.order
+            for index in range(len(items)):
+                i = items[index]
+                i.order += 1;
+                i.save()
+        else:
+            for index in range(len(items)):
+                i = items[index]
+                if i.id == target_item.id:
+                    continue
+                if i.order > target_item.order:
+                    i.order += 1
+                    i.save()
         new_item = WorkspaceInputItem.create()
+        new_item.order = order
+        new_item.save()
         workspace.input_list.add(new_item)
         workspace.save()
-        is_after_target = False
-        for i in workspace.input_list.all():
-            if i.id == workspace_item_id:
-                is_after_target = True
-                new_item.order = i.order+1
-                new_item.save()
-            elif is_after_target:
-                i.order = i.order + 1
-                i.save()
-        return generate_response(new_item.to_dictionary())
-
-    # def options(self, request):
-    #     return Response(json.dumps({'status': 'ok'}),
-    #                     content_type='application/json',
-    #                     status=200,
-    #                     headers={'Access-Control-Allow-Origin': '*',
-    #                              'Access-Control-Allow-Headers': '*',
-    #                              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'})
+        result = dict(newItem=new_item.to_dictionary(),
+                      ID_OrderMap=[dict(id=i.id, order=i.order)
+                                   for i in workspace.input_list.all()])
+        return generate_response(result)

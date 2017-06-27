@@ -28,7 +28,21 @@ export class Workspace {
 
   public insertNewItem(item) {
     this.inputList.push(item);
+  };
+
+  public sortItems() {
     this.inputList.sort((a, b) => b.order - a.order);
+  };
+
+  public updateOrders(update) {
+    for (const u of update) {
+      for (let i = 0; i < this.inputList.length; i++) {
+        if (this.inputList[i].id === u.id){
+          this.inputList[i].order = u.order
+        }
+      }
+    }
+    this.sortItems()
   };
 }
 
