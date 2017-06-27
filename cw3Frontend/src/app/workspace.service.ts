@@ -1,13 +1,13 @@
 /**
  * Created by yurabraiko on 26.06.17.
  */
-import {Injectable} from "@angular/core";
-import {Headers, Http, Response} from "@angular/http";
+import {Injectable} from '@angular/core';
+import {Headers, Http, Response} from '@angular/http';
 
-import {Observable} from "rxjs/Observable";
-import "rxjs/add/operator/catch";
-import "rxjs/add/operator/map";
-import {Workspace} from "./workspace";
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/map';
+import {Workspace} from './workspace';
 
 @Injectable()
 export class WorkspaceService {
@@ -21,6 +21,32 @@ export class WorkspaceService {
       params: {id: id},
       headers: headers
     }).map(res => {
+      console.log('getting response ', res.toString());
+      return res.json()
+    })
+      .catch(error => {
+        this.handleError(error);
+        return Observable.create(observer => {
+          observer.next(new Workspace());
+          observer.complete();
+        });
+      })
+  }
+
+  addWorkspace(workspaceID: string, workspaceItemID: string) {
+    const headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+    const body = {
+      workspaceID: workspaceID,
+      workspaceItemID: workspaceItemID
+    };
+
+    return this.http.post(
+      'http://127.0.0.1:8000/api/workspaceItem/',
+      body,
+      {headers: headers}
+    ).map(res => {
       console.log('getting response ', res.toString());
       return res.json()
     })

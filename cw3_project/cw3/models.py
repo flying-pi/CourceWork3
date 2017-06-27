@@ -6,15 +6,16 @@ from django.db import models
 class WorkspaceInputItem(models.Model):
     itemText = models.TextField()
     isEditable = models.BooleanField()
+    order = models.IntegerField()
 
     @classmethod
-    def create(cls, data, editable=True):
-        result = cls(itemText=data, isEditable=editable)
+    def create(cls, data='', editable=True):
+        result = cls(itemText=data, isEditable=editable, order=0)
         result.save()
         return result
 
-    def to_json(self):
-        return dict(itemText=self.itemText, isEditable=self.isEditable, id=self.id)
+    def to_dictionary(self):
+        return dict(itemText=self.itemText, isEditable=self.isEditable, id=self.id, order=self.order)
 
 
 class Workspace(models.Model):
@@ -29,5 +30,5 @@ class Workspace(models.Model):
         result.input_list.add(empty_input)
         return result
 
-    def to_json(self):
-        return dict(id=self.id, title=self.title, inputList=[i.to_json() for i in self.input_list.all()])
+    def to_dictionary(self):
+        return dict(id=self.id, title=self.title, inputList=[i.to_dictionary() for i in self.input_list.all()])

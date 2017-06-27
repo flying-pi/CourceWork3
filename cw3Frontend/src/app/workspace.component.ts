@@ -3,7 +3,7 @@
  */
 import {Component, Injectable, Input, OnInit} from '@angular/core';
 import {WorkspaceService} from './workspace.service';
-import {Workspace} from './workspace';
+import {Workspace, WorkspaceItem} from './workspace';
 
 @Component({
   selector: 'app-root',
@@ -21,14 +21,14 @@ import {Workspace} from './workspace';
         <li class="documentItem" *ngFor="let ws of workspace.inputList">
           <div>
             <div>
-              <button type="button"  for="Insert" (click)="removeItem(ws.id)">Remove</button>
-              <button type="button"  name="Insert" (click)="insertItem(ws.id)">Insert new aria</button>
+              <button type="button" for="Insert" (click)="removeItem(ws.id)">Remove</button>
+              <button type="button" name="Insert" (click)="insertItemAfterComponent(ws.id)">Insert new aria</button>
             </div>
             <textarea class="codeAria">{{ws.itemText}}</textarea>
           </div>
         </li>
       </ul>
-      <button type="button"  (click)="insertItem(-1)" >Add new aria</button>
+      <button type="button" (click)="insertItemAfterComponent(-1)">Add new aria</button>
     </div>
   `
 })
@@ -41,15 +41,19 @@ export class WorkspaceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.workspaceSerivce.loadWorkspace('-1').subscribe(workspace => this.workspace = JSON.parse(workspace))
+    this.workspaceSerivce.loadWorkspace('-1').subscribe(workspace => {
+      this.workspace = new Workspace();
+      this.workspace = Object.assign(this.workspace, JSON.parse(workspace))
+    })
   }
 
-  insertItem(componentID): void {
-
+  insertItemAfterComponent(componentID) {
     console.log('insert click');
+    this.workspaceSerivce.addWorkspace(this.workspace.id, componentID)
+      .subscribe(item => this.workspace.insertNewItem(Object.assign(new WorkspaceItem(), JSON.parse(item))))
   }
 
-  removeItem(componentID): void {
+  removeItem = function (componentID): void {
     console.log('remove click');
   }
 }
