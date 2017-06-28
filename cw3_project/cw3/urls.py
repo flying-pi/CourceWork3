@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from cw3.views import WorkspaceApi, WorkspaceElementApi
+from cw3.views import WorkspaceApi, WorkspaceElementApi, CodeApi
 
 # urlpatterns = [
 #     url(r'^$', views.index, name='index'),
@@ -16,6 +16,7 @@ from cw3.views import WorkspaceApi, WorkspaceElementApi
 urlpatterns = [
     url(r'^getWorkspace/', WorkspaceApi.as_view()),
     url(r'^workspaceItem/', WorkspaceElementApi.as_view()),
+    url(r'^code/', CodeApi.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

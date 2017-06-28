@@ -4,6 +4,8 @@
   width: 100%;
   min-height: 50px;
   font-size: 18pt;
+  padding: 12px;
+  position:relative;
 }
 
 .documentItem {

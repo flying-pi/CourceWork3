@@ -26,7 +26,11 @@ class Workspace(models.Model):
     def create(cls, title):
         result = cls(title=title)
         result.save()
-        empty_input = WorkspaceInputItem.create("")
+        empty_input = WorkspaceInputItem.create('p(x,y) = x*x+y*y-25\n'
+                                                'print(\'hello word\')\n'
+                                                'print(p(1,2))\n'
+                                                'print(p(1,4))\n'
+                                                'print(p(1,8))')
         result.input_list.add(empty_input)
         return result
 

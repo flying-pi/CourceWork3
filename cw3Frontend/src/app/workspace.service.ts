@@ -60,7 +60,6 @@ export class WorkspaceService {
   }
 
 
-
   removeWorkspace(workspaceID: string, workspaceItemID: string) {
     const headers = new Headers();
     headers.append('Accept', 'application/json');
@@ -72,8 +71,37 @@ export class WorkspaceService {
 
     return this.http.delete(
       'http://127.0.0.1:8000/api/workspaceItem/',
-      { params: body,
-        headers: headers}
+      {
+        params: body,
+        headers: headers
+      }
+    ).map(res => {
+      console.log('getting response ', res.toString());
+      return res.json()
+    })
+      .catch(error => {
+        this.handleError(error);
+        return Observable.create(observer => {
+          observer.next(new Workspace());
+          observer.complete();
+        });
+      })
+  }
+
+  pushCodeChange(workspaceID: string, workspaceItemID: string, code: string) {
+    const headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+    const body = {
+      workspaceID: workspaceID,
+      workspaceItemID: workspaceItemID,
+      code: code
+    };
+
+    return this.http.post(
+      'http://127.0.0.1:8000/api/code/',
+      body,
+      {headers: headers}
     ).map(res => {
       console.log('getting response ', res.toString());
       return res.json()

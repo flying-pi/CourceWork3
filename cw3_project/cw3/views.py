@@ -1,22 +1,27 @@
+import inspect
 import json
+import math
 
 from django.db.models import TextField
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from cw3 import models
+from cw3.calc import Calculator
 from cw3.models import Workspace, WorkspaceInputItem
 
 
-def generate_response(data):
+def generate_response(data,status = 200):
     return Response(json.dumps(data),
                     content_type='application/json',
-                    status=200,
+                    status=status,
                     headers={'Access-Control-Allow-Origin': '*'})
 
 
 def generate_error_response(error: str):
-    return generate_response({'error': error})
+
+    return generate_response({'error': error},status=400)
 
 
 class WorkspaceApi(APIView):
@@ -38,7 +43,7 @@ class WorkspaceApi(APIView):
             if len(workspace) != 0:
                 workspace = workspace[0]
         if workspace is None:
-            return generate_error_response("can not found workspace with id=" + workspace_id)
+            return generate_error_response("can not found workspace with id=" + str(workspace_id))
         return generate_response(workspace.to_dictionary())
 
 
@@ -53,7 +58,7 @@ class WorkspaceElementApi(APIView):
         workspace_item_id = request.data['workspaceItemID']
         workspace: Workspace = Workspace.objects.filter(id=workspace_id)[0]
         if workspace is None:
-            return generate_error_response("can not found workspace with id :: " + workspace_id)
+            return generate_error_response("can not found workspace with id :: " + str(workspace_id))
         order = 0
         items = workspace.input_list.all()
         target_item = workspace.input_list.all().filter(id=workspace_item_id)
@@ -92,11 +97,11 @@ class WorkspaceElementApi(APIView):
         workspace_item_id = request.query_params['workspaceItemID']
         workspace: Workspace = Workspace.objects.filter(id=workspace_id)[0]
         if workspace is None:
-            return generate_error_response("can not found workspace with id :: " + workspace_id)
+            return generate_error_response("can not found workspace with id :: " + str(workspace_id))
         items = workspace.input_list.all()
         target_item = workspace.input_list.all().filter(id=workspace_item_id)
         if len(target_item) != 1:
-            return generate_error_response("can not found item with id :: " + workspace_id)
+            return generate_error_response("can not found item with id :: " + str(workspace_id))
         target_item = target_item[0]
         workspace.input_list.remove(target_item)
         for i in range(len(items)):
@@ -108,3 +113,27 @@ class WorkspaceElementApi(APIView):
         result = dict(removedItemID=workspace_item_id,
                       ID_OrderMap=[dict(id=i.id, order=i.order) for i in items])
         return generate_response(result)
+
+
+class CodeApi(APIView):
+    """
+    POST
+    Get workspace, or create a new item.
+    """
+
+    def post(self, request):
+        workspace_id = request.data['workspaceID']
+        workspace_item_id = request.data['workspaceItemID']
+        code = request.data['code']
+
+        workspace: Workspace = Workspace.objects.filter(id=workspace_id)[0]
+        if workspace is None:
+            return generate_error_response("can not found workspace with id :: " + str(workspace_id))
+        target_item = workspace.input_list.all().filter(id=workspace_item_id)
+        if len(target_item) != 1:
+            return generate_error_response("can not found item with id :: " + str(workspace_id))
+        target_item = target_item[0]
+        target_item.itemText = code
+        target_item.save()
+        execute_result = Calculator([(str(i.id), i.itemText) for i in workspace.input_list.all()]).execute()
+        return generate_response(execute_result)

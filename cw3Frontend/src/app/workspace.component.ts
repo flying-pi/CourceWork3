@@ -3,7 +3,7 @@
  */
 import {Component, Injectable, Input, OnInit} from '@angular/core';
 import {WorkspaceService} from './workspace.service';
-import {Workspace, WorkspaceItem} from './workspace';
+import {Workspace} from './workspace';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +24,16 @@ import {Workspace, WorkspaceItem} from './workspace';
               <button type="button" for="Insert" (click)="removeItem(ws.id)">Remove</button>
               <button type="button" name="Insert" (click)="insertItemAfterComponent(ws.id)">Insert new aria</button>
             </div>
-            <textarea class="codeAria" (input)="onItemEdit($event.target,ws.id)">{{ws.itemText}}</textarea>
+            <textarea class="codeAria" (input)="onItemEdit($event.target, ws.id)"
+                      rows="{{ws.itemText.split('\n').length}}">{{ws.itemText}}
+            </textarea>
+            <div class='result'>
+              <div *ngFor="let out of ws.out">
+                <div class="out.text" *ngIf="out.type === 'text'">
+                  {{out.data}}
+                </div>
+              </div>
+            </div>
           </div>
         </li>
       </ul>
@@ -42,7 +51,8 @@ export class WorkspaceComponent implements OnInit {
 
   ngOnInit(): void {
     this.workspaceSerivce.loadWorkspace('-1').subscribe(workspace => {
-      const newWorkSpace = Object.assign(new Workspace(), JSON.parse(workspace))
+      const newWorkSpace = new Workspace();
+      newWorkSpace.loadData(JSON.parse(workspace));
       newWorkSpace.sortItems();
       this.workspace = newWorkSpace
     })
@@ -53,7 +63,7 @@ export class WorkspaceComponent implements OnInit {
     this.workspaceSerivce.addWorkspace(this.workspace.id, componentID)
       .subscribe(items => {
         const jsonArray = JSON.parse(items);
-        this.workspace.insertNewItem(Object.assign(new WorkspaceItem(), jsonArray.newItem));
+        this.workspace.insertNewItem(jsonArray.newItem);
         this.workspace.updateOrders(jsonArray.ID_OrderMap)
       })
   }
@@ -73,11 +83,18 @@ export class WorkspaceComponent implements OnInit {
 
   onItemEdit(item, componentID): void {
     let lineCount = item.value.split('\n').length;
+    const isChange = (lineCount !== item.rows)
     if (lineCount < 2) {
       lineCount = 2
     }
     item.rows = lineCount;
-    console.log('onItemEdit');
-    console.log(item.textContent);
+    if (isChange) {
+      this.workspaceSerivce.pushCodeChange(this.workspace.id, componentID, item.value).subscribe(items => {
+          console.log(items);
+          this.workspace.updateResults(JSON.parse(items).out);
+        }
+      )
+    }
   }
+
 }
