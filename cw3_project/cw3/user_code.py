@@ -1,5 +1,8 @@
 import json
 from typing import Iterable
+import matplotlib.pyplot as plt
+import io
+from matplotlib import numpy as np
 
 from cw3.CalculationLog import CalculationLog
 

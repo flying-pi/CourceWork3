@@ -30,7 +30,9 @@ class Workspace(models.Model):
                                                 'print(\'hello word\')\n'
                                                 'print(p(1,2))\n'
                                                 'print(p(1,4))\n'
-                                                'print(p(1,8))')
+                                                'print(p(1,8))\n'
+                                                'testPlot(x) = x*x*x\n'
+                                                'plot(testPlot,-3,3,0.1)')
         result.input_list.add(empty_input)
         return result
 

@@ -1,3 +1,5 @@
+import base64
+import re
 from abc import ABCMeta, abstractmethod
 
 
@@ -30,6 +32,21 @@ class TextLogItem(LogItem):
         self.text = self.text.strip()
 
 
+class Base64ImageLogItem(LogItem):
+    b64image: str = ''
+
+    def type(self) -> str:
+        return 'base64'
+
+    def data(self):
+        return self.b64image
+
+    def __init__(self, raw, t) -> None:
+        super().__init__()
+        b64 = base64.b64encode(raw)
+        self.b64image = 'data:' + t + ';base64,' + str(b64, 'utf-8')
+
+
 class CalculationLog:
     items = []
 
@@ -40,6 +57,9 @@ class CalculationLog:
 
     def add_line(self, *arg):
         self.items.append(TextLogItem(arg))
+
+    def add_base64_image(self, b64, t):
+        self.items.append(Base64ImageLogItem(b64, t))
 
     def to_dictionary(self):
         return {'put_id': int(self.put_id), 'items': [i.to_dictionary() for i in self.items]}

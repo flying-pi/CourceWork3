@@ -1,8 +1,12 @@
 import inspect
+import io
 import json
 import re
 from abc import ABCMeta, abstractmethod
 from typing import Iterable
+
+import matplotlib.pyplot as plt
+from matplotlib import numpy as np
 
 from cw3.CalculationLog import CalculationLog
 
@@ -10,6 +14,8 @@ NAME_REGEXP = re.compile(r"^[A-Za-z]+[A-Za-z0-9]*$")
 PRINT_FUN_REGEXP = re.compile(r"^(print\()[\s\S]*(\))$")
 PRINT_FUN_ARGS_REGEXP = re.compile(r"^(print\()(.+?)(\))$")
 
+PLOT_FUN_REGEXP = re.compile(r"^(plot\()[\s\S]*(\))$")
+PLOT_FUN_ARGS_REGEXP = re.compile(r"^(plot\()(.+?)(\))$")
 stuff = ''
 
 
@@ -26,7 +32,7 @@ class CodeGenerator(metaclass=ABCMeta):
         """"""
 
 
-class SystemFunctionCheck(CodeGenerator):
+class SystemPrintFunctionCheck(CodeGenerator):
     for_insert = ''
 
     def to_code(self, line: str, space_offset: str) -> str:
@@ -36,6 +42,45 @@ class SystemFunctionCheck(CodeGenerator):
         self.for_insert = ''
         if PRINT_FUN_REGEXP.fullmatch(line) is not None:
             self.for_insert = f'self.log_card().add_line({PRINT_FUN_ARGS_REGEXP.search(line).group(2)})'
+            return True
+        return False
+
+
+class SystemPlotFunctionCheck(CodeGenerator):
+    for_insert = ''
+    # ax = fig.gca()
+    # ax.set_xticks(numpy.arange(0, 1, 0.1))
+    # ax.set_yticks(numpy.arange(0, 1., 0.1))
+    def to_code(self, line: str, space_offset: str) -> str:
+        puts = self.for_insert.split(',')
+        return f'{space_offset}def plot() -> str:\n' \
+               f'{space_offset}{space_offset}x = np.arange({puts[1]},{puts[2]},{puts[3]})\n' \
+               f'{space_offset}{space_offset}y = [{puts[0]}(i) for i in x]\n' \
+               f'{space_offset}{space_offset}\n' \
+               f'{space_offset}{space_offset}fig = plt.figure()\n' \
+               f'{space_offset}{space_offset}ax = fig.gca()\n' \
+               f'{space_offset}{space_offset}ax.set_xticks(np.arange({puts[1]},{puts[2]},({puts[3]})*10))\n' \
+               f'{space_offset}{space_offset}ax.set_yticks(np.arange(y[0], y[len(y)-1], ( y[len(y)-1] - y[0])/10))\n' \
+               f'{space_offset}{space_offset}plt.plot(x, y)\n' \
+               f'{space_offset}{space_offset}\n' \
+               f'{space_offset}{space_offset}plt.grid()\n' \
+               f'{space_offset}{space_offset}\n' \
+               f'{space_offset}{space_offset}imgdata = io.BytesIO()\n' \
+               f'{space_offset}{space_offset}fig.savefig(imgdata, format=\'png\', transparent=True)\n' \
+               f'{space_offset}{space_offset}imgdata.seek(0)\n' \
+               f'{space_offset}{space_offset}svg_dta = imgdata.getvalue() \n' \
+               f'{space_offset}{space_offset}\n' \
+               f'{space_offset}{space_offset}plt.close(fig) \n' \
+               f'{space_offset}{space_offset}return svg_dta\n' \
+               f'{space_offset}\n' \
+               f'{space_offset}self.log_card().add_base64_image(plot(),\'image/png\')\n' \
+               f'{space_offset}\n' \
+               f'{space_offset}\n'
+
+    def check(self, line: str) -> bool:
+        self.for_insert = ''
+        if PLOT_FUN_REGEXP.fullmatch(line) is not None:
+            self.for_insert = f'{PLOT_FUN_ARGS_REGEXP.search(line).group(2)}'
             return True
         return False
 
@@ -91,9 +136,9 @@ class UserFunctionCheck(CodeGenerator):
                     self.arguments.append(arg)
             else:
                 arg = puts[1].split(')')
-                if NAME_REGEXP.fullmatch(arg) is None:
+                if NAME_REGEXP.fullmatch(arg[0]) is None:
                     return False
-                self.arguments.append(arg)
+                self.arguments.append(arg[0])
         return True
 
 
@@ -107,9 +152,13 @@ class Calculator:
 
         CalculationLog('-1')
         json.dumps({'mock': 'mock'})
+        a: plt
+        a: io
+        a: np
 
     def _init_generators(self):
-        self.generators = [SystemFunctionCheck(),
+        self.generators = [SystemPrintFunctionCheck(),
+                           SystemPlotFunctionCheck(),
                            UserFunctionCheck(),
                            ExpressionCheck(), ]
 
@@ -145,6 +194,7 @@ class Calculator:
                 if len(l) == 0:
                     continue
                 found = False
+                print("processing string :: ", l)
                 for g in self.generators:
                     if g.check(l):
                         found = True

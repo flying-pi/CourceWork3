@@ -32,6 +32,9 @@ import {Workspace} from './workspace';
                 <div class="out.text" *ngIf="out.type === 'text'">
                   {{out.data}}
                 </div>
+                <div class="out.base64image" *ngIf="out.type === 'base64'" >
+                  <img src='{{out.data}}'/>
+                </div>
               </div>
             </div>
           </div>
@@ -95,6 +98,10 @@ export class WorkspaceComponent implements OnInit {
         }
       )
     }
-  }
+  };
+
+  onSvgItemLoad(item, svg): void {
+    console.log('onSvgItemLoad');
+  };
 
 }
