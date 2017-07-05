@@ -3,6 +3,8 @@ from typing import Iterable
 import matplotlib.pyplot as plt
 import io
 from matplotlib import numpy as np
+from math import *
+
 
 from cw3.CalculationLog import CalculationLog
 

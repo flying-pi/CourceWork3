@@ -26,13 +26,14 @@ class Workspace(models.Model):
     def create(cls, title):
         result = cls(title=title)
         result.save()
-        empty_input = WorkspaceInputItem.create('p(x,y) = x*x+y*y-25\n'
-                                                'print(\'hello word\')\n'
-                                                'print(p(1,2))\n'
-                                                'print(p(1,4))\n'
-                                                'print(p(1,8))\n'
-                                                'testPlot(x) = x*x*x\n'
-                                                'plot(testPlot,-3,3,0.1)')
+        empty_input = WorkspaceInputItem.create('''p(x) = x*cos(x)
+q(x) = -exp(x)
+u(x) = 1+x
+equation = Eq.Diff.marginal('y``+q(x)*y+p(x)*y`-u(x)',0,1,1,4)
+print(equation.source)
+print(equation.conditions)
+equation.calculate()
+''')
         result.input_list.add(empty_input)
         return result
 

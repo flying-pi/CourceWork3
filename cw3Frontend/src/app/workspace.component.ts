@@ -1,7 +1,7 @@
 /**
  * Created by yurabraiko on 26.06.17.
  */
-import {Component, Injectable, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, Injectable, Input, OnInit, ViewChild} from '@angular/core';
 import {WorkspaceService} from './workspace.service';
 import {Workspace} from './workspace';
 
@@ -17,7 +17,7 @@ import {Workspace} from './workspace';
         <label for="Name">Workspace name: </label>
         <input [(ngModel)]="workspace.title" name="Name">
       </div>
-      <ul class="documentItemList">
+      <ul class="documentItemList" #documentItemList>
         <li class="documentItem" *ngFor="let ws of workspace.inputList">
           <div>
             <div>
@@ -29,10 +29,10 @@ import {Workspace} from './workspace';
             </textarea>
             <div class='result'>
               <div *ngFor="let out of ws.out">
-                <div class="out.text" *ngIf="out.type === 'text'">
-                  {{out.data}}
+                <div class="out.text" *ngIf="out.type === 'text'" id="{{out.order}}_{{ws.id}}">
+                  {{decorateTextOut(out.data, out.order, ws.id)}}
                 </div>
-                <div class="out.base64image" *ngIf="out.type === 'base64'" >
+                <div class="out.base64image" *ngIf="out.type === 'base64'">
                   <img src='{{out.data}}'/>
                 </div>
               </div>
@@ -48,6 +48,7 @@ import {Workspace} from './workspace';
 @Injectable()
 export class WorkspaceComponent implements OnInit {
   @Input() workspace: Workspace = new Workspace();
+  lastUpdateID = 0;
 
   constructor(private workspaceSerivce: WorkspaceService) {
   }
@@ -84,24 +85,44 @@ export class WorkspaceComponent implements OnInit {
       })
   }
 
+  decorateTextOut(raw: string, order: number, elementID: string): string {
+    let result = raw;
+    const regex = /\*\*([0-9]+)/g;
+    let m = regex.exec(result);
+    while (m !== null) {
+      if (m.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+      result = result.replace(m[0], `<sup>${m[1]}</sup>`)
+      m = regex.exec(result);
+    }
+    result = result.replace(/\*/g, '⋅');
+    window.document.getElementById(order + '_' + elementID).innerHTML = `<p>${result}</p>`;
+    return '';
+  }
+
   onItemEdit(item, componentID): void {
     let lineCount = item.value.split('\n').length;
-    const isChange = (lineCount !== item.rows)
     if (lineCount < 2) {
       lineCount = 2
     }
     item.rows = lineCount;
-    if (isChange) {
-      this.workspaceSerivce.pushCodeChange(this.workspace.id, componentID, item.value).subscribe(items => {
+    const update = (args) => {
+      if (args[0] !== args[1].lastUpdateID) {
+        return;
+      }
+      let message: string = item.value;
+      const regex = /\\\s*\n/g;
+      message = message.replace(regex, '');
+      this.workspaceSerivce.pushCodeChange(this.workspace.id, componentID, message).subscribe(items => {
           console.log(items);
           this.workspace.updateResults(JSON.parse(items).out);
         }
       )
-    }
-  };
+    };
+    this.lastUpdateID++;
+    setTimeout(update, 1000, [this.lastUpdateID, this]);
 
-  onSvgItemLoad(item, svg): void {
-    console.log('onSvgItemLoad');
   };
 
 }

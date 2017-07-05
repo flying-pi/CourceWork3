@@ -1,6 +1,6 @@
 import base64
-import re
 from abc import ABCMeta, abstractmethod
+from typing import Dict
 
 
 class LogItem(metaclass=ABCMeta):
@@ -12,8 +12,8 @@ class LogItem(metaclass=ABCMeta):
     def data(self):
         """"""
 
-    def to_dictionary(self):
-        return {'type': self.type(), 'data': self.data()}
+    def to_dictionary(self, pos: int = 0) -> Dict:
+        return {'type': self.type(), 'data': self.data(), 'order': pos}
 
 
 class TextLogItem(LogItem):
@@ -62,4 +62,5 @@ class CalculationLog:
         self.items.append(Base64ImageLogItem(b64, t))
 
     def to_dictionary(self):
-        return {'put_id': int(self.put_id), 'items': [i.to_dictionary() for i in self.items]}
+        return {'put_id': int(self.put_id),
+                'items': [self.items[i].to_dictionary(i) for i in range(len(self.items))]}

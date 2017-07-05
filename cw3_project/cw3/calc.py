@@ -3,12 +3,14 @@ import io
 import json
 import re
 from abc import ABCMeta, abstractmethod
+from math import *
 from typing import Iterable
 
 import matplotlib.pyplot as plt
 from matplotlib import numpy as np
 
 from cw3.CalculationLog import CalculationLog
+from cw3.Eq import Eq
 
 NAME_REGEXP = re.compile(r"^[A-Za-z]+[A-Za-z0-9]*$")
 PRINT_FUN_REGEXP = re.compile(r"^(print\()[\s\S]*(\))$")
@@ -48,20 +50,28 @@ class SystemPrintFunctionCheck(CodeGenerator):
 
 class SystemPlotFunctionCheck(CodeGenerator):
     for_insert = ''
-    # ax = fig.gca()
-    # ax.set_xticks(numpy.arange(0, 1, 0.1))
-    # ax.set_yticks(numpy.arange(0, 1., 0.1))
+
     def to_code(self, line: str, space_offset: str) -> str:
         puts = self.for_insert.split(',')
         return f'{space_offset}def plot() -> str:\n' \
-               f'{space_offset}{space_offset}x = np.arange({puts[1]},{puts[2]},{puts[3]})\n' \
-               f'{space_offset}{space_offset}y = [{puts[0]}(i) for i in x]\n' \
+               f'{space_offset}{space_offset}x_rand12as321_x = np.arange({puts[1]},{puts[2]}+{puts[3]}/2,{puts[3]})\n' \
+               f'{space_offset}{space_offset}y_randeiru48f48_y = [{puts[0]}(i) for i in x_rand12as321_x]\n' \
                f'{space_offset}{space_offset}\n' \
                f'{space_offset}{space_offset}fig = plt.figure()\n' \
                f'{space_offset}{space_offset}ax = fig.gca()\n' \
-               f'{space_offset}{space_offset}ax.set_xticks(np.arange({puts[1]},{puts[2]},({puts[3]})*10))\n' \
-               f'{space_offset}{space_offset}ax.set_yticks(np.arange(y[0], y[len(y)-1], ( y[len(y)-1] - y[0])/10))\n' \
-               f'{space_offset}{space_offset}plt.plot(x, y)\n' \
+               f'{space_offset}{space_offset}step_rand8jrj4_step = ' \
+               f'(max(x_rand12as321_x) - min(x_rand12as321_x))/10\n' \
+               f'{space_offset}{space_offset}ax.set_xticks(' \
+               f'np.arange(min(x_rand12as321_x), ' \
+               f'max(x_rand12as321_x)+step_rand8jrj4_step/2, ' \
+               f'step_rand8jrj4_step))\n' \
+               f'{space_offset}{space_offset}step_rand8jrj4_step = ' \
+               f'(max(y_randeiru48f48_y) - min(y_randeiru48f48_y))/10\n' \
+               f'{space_offset}{space_offset}ax.set_yticks(' \
+               f'np.arange(min(y_randeiru48f48_y), ' \
+               f'max(y_randeiru48f48_y) + step_rand8jrj4_step/2, ' \
+               f'step_rand8jrj4_step))\n' \
+               f'{space_offset}{space_offset}plt.plot(x_rand12as321_x, y_randeiru48f48_y)\n' \
                f'{space_offset}{space_offset}\n' \
                f'{space_offset}{space_offset}plt.grid()\n' \
                f'{space_offset}{space_offset}\n' \
@@ -155,6 +165,8 @@ class Calculator:
         a: plt
         a: io
         a: np
+        a: math
+        a: Eq
 
     def _init_generators(self):
         self.generators = [SystemPrintFunctionCheck(),
@@ -164,6 +176,7 @@ class Calculator:
 
     def generate_code(self):
         logic = self._generate_logic()
+        print('logic :: ', logic)
         template = self._get_template_module()
         src = template.replace('###CODE_INSERT###', logic)
         return src
@@ -200,5 +213,7 @@ class Calculator:
                         found = True
                         src += "\n" + g.to_code(l, standard_offset)
                         break
+                if not found:
+                    src += f'\n{standard_offset}{l}\n'
 
         return src
