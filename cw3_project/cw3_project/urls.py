@@ -17,9 +17,14 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from rest_framework.documentation import include_docs_urls
 
+from cw3.urls import urlpatterns as cw3_urlpatterns
+
+# url(r'^api/', include(router.urls, namespace='api')),
+
 urlpatterns = [
     # url(r'^', include('cw3.urls')),
     url(r'^admin/', admin.site.urls),
-    url(r'^api/', include('cw3.urls')),
+    # url(r'^api/', include('cw3.urls')),
+    url(r'^api/', include(cw3_urlpatterns, namespace='api')),
     url(r'^docs/', include_docs_urls(title='My API title')),
 ]

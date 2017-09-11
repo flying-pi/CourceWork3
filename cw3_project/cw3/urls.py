@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from cw3.views import WorkspaceApi, WorkspaceElementApi, CodeApi
@@ -11,7 +12,14 @@ from cw3.views import WorkspaceApi, WorkspaceElementApi, CodeApi
 # router = routers.SimpleRouter()
 # router.register(r'workspace', WorkspaceApi, base_name='create')
 # urlpatterns = router.urls
-
+#
+# router = routers.DefaultRouter()
+#
+# # register REST API endpoints with DRF router
+# router.register(r'getWorkspace', WorkspaceApi, r"getWorkspace")
+# router.register(r'workspaceItem', WorkspaceElementApi, r"workspaceItem")
+# router.register(r'code', CodeApi, r"code")
+router = routers.SimpleRouter()
 
 urlpatterns = [
     url(r'^getWorkspace/', WorkspaceApi.as_view()),
@@ -20,3 +28,5 @@ urlpatterns = [
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
+
+urlpatterns += router.urls
